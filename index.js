@@ -1,28 +1,34 @@
-const API_URL = 'https://api.github.com/repos/sahanr/street-fighter/contents/fighters.json';
+const API_URL = 'https://api.github.com/';
 const rootElement = document.getElementById('root');
 const loadingElement = document.getElementById('loading-overlay');
 
+async function startApp() {
+  const endpoint = 'repos/sahanr/street-fighter/contents/fighters.json';
+  const fighters = await callApi(endpoint, 'GET');
+  rootElement.innerText = getFightersNames(fighters);
+}
 
-fetch(API_URL);
-fetch(API_URL)
-  .then(response => {
-    if (!response.ok) {
-      Promise.reject(new Error('Failed load data'));
-    }
-  return response.json();
-  })
-  .then(file => {
-    const fighters = JSON.parse(atob(file.content));
-    const names = fighters.map(it => it.name).join('\n');
-    
-    rootElement.innerText = names;
-    loadingElement.remove();
+function callApi(endpoind, method = 'GET') {
+  const url = API_URL + endpoind;
+  const options = {
+    method
+  };
 
-  })
+  return fetch(url, options)
+    .then(response => response.ok ? response.json() : Promise.reject(Error('Failed to load')))
+    .then(file => JSON.parse(atob(file.content)))
+    .catch(error => {
+      console.warn(error);
+      rootElement.innerText = 'Failed to load data';
+    })
+    .finally(() => {
+      loadingElement.remove();
+    });
+}
 
-  .catch(error => {
-    console.warn(error);
-    root.innerText = 'Failed to load data';
-    loadingElement.remove();
-  });
+function getFightersNames(fighters) {
+  const names = fighters.map(it => it.name).join('\n');
+  return names;
+}
 
+startApp();
